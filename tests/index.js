@@ -60,5 +60,30 @@ exports.loadConfiguration = {
       }
     })
     test.done()
+  },
+
+  emptyValues (test) {
+    this.configStub = sinon.stub(dotenv, 'config', () => {
+      process.env.EMPTY_STRING1 = ''
+      process.env.EMPTY_STRING2 = ''
+      process.env.SPACE = ' '
+    })
+    const config = loadConfiguration({
+      string1: 'EMPTY_STRING1',
+      string2: {
+        env: 'EMPTY_STRING2',
+        default: 'default value'
+      },
+      string3: {
+        env: 'EMPTY_STRING3',
+        default: 'default value'
+      }
+    })
+    test.deepEqual(config, {
+      string1: '',
+      string2: '',
+      string3: 'default value'
+    })
+    test.done()
   }
 }

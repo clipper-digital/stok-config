@@ -26,7 +26,7 @@ function loadConfiguration (options) {
       value = process.env[value]
     }
 
-    configuration[option] = value || defaultValue
+    configuration[option] = value !== undefined ? value : defaultValue
   })
 
   return configuration
