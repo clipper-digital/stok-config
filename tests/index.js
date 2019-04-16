@@ -1,40 +1,48 @@
 const dotenv = require('dotenv')
 const sinon = require('sinon')
+const tap = require('tap')
 const loadConfiguration = require('../index')
 
-exports.loadConfiguration = {
-  setUp: function (done) {
+tap.test('loadConfiguration', (module) => {
+  let configStub
+
+  module.beforeEach((done) => {
     this._env = process.env
     process.env = {}
+    configStub = sinon.stub(dotenv, 'config')
     done()
-  },
+  })
 
-  tearDown: function (done) {
+  module.afterEach((done) => {
     process.env = this._env
-    this.configStub.restore()
+    configStub.restore()
     done()
-  },
+  })
 
-  simple (test) {
-    this.configStub = sinon.stub(dotenv, 'config', () => {
+  module.test('simple', (test) => {
+    configStub.callsFake(() => {
       process.env.FOO = 'my foo'
     })
+
     const config = loadConfiguration({
       foo: 'FOO',
       bar: 'BAR'
     })
-    test.deepEqual(config, {
+
+    test.same(config, {
       foo: 'my foo',
       bar: null
     })
-    test.done()
-  },
 
-  complex (test) {
-    this.configStub = sinon.stub(dotenv, 'config', () => {
+    test.end()
+  })
+
+  module.test('complex', (test) => {
+    configStub.callsFake(() => {
       process.env.WEB_PORT = 1234
       process.env.DB_HOST = 'db-host'
     })
+
     const config = loadConfiguration({
       web: {
         port: {
@@ -50,7 +58,8 @@ exports.loadConfiguration = {
         }
       }
     })
-    test.deepEqual(config, {
+
+    test.same(config, {
       web: {
         port: 1234
       },
@@ -59,15 +68,17 @@ exports.loadConfiguration = {
         port: 8000
       }
     })
-    test.done()
-  },
 
-  emptyValues (test) {
-    this.configStub = sinon.stub(dotenv, 'config', () => {
+    test.end()
+  })
+
+  module.test('empty values', (test) => {
+    configStub.callsFake(() => {
       process.env.EMPTY_STRING1 = ''
       process.env.EMPTY_STRING2 = ''
       process.env.SPACE = ' '
     })
+
     const config = loadConfiguration({
       string1: 'EMPTY_STRING1',
       string2: {
@@ -79,11 +90,15 @@ exports.loadConfiguration = {
         default: 'default value'
       }
     })
+
     test.deepEqual(config, {
       string1: '',
       string2: '',
       string3: 'default value'
     })
-    test.done()
-  }
-}
+
+    test.end()
+  })
+
+  module.end()
+})
